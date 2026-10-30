@@ -1,0 +1,93 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Daddy Music Studio</title>
+<style>
+:root{--gold:#f2b632;--gold2:#ffd76a;--purple:#2a0d45;--purple2:#3f1766;--red:#c8312b;--green:#1f8a4c;--ink:#fff7e6}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,Segoe UI,sans-serif;background:radial-gradient(circle at 20% 0,#4b1c7a,var(--purple) 60%,#14051f);color:var(--ink);min-height:100vh}
+.kente{height:14px;background:repeating-linear-gradient(90deg,var(--gold) 0 28px,var(--green) 28px 40px,var(--gold) 40px 52px,var(--red) 52px 64px,#111 64px 72px,var(--gold) 72px 100px,var(--purple2) 100px 112px)}
+header{display:flex;align-items:center;gap:16px;padding:14px 22px;flex-wrap:wrap}
+h1{margin:0;font-family:Georgia,serif;font-size:30px;letter-spacing:1px;color:var(--gold2);text-shadow:0 2px 0 #000}
+h1 small{display:block;font-size:13px;color:#e8d3ff;font-family:system-ui;letter-spacing:3px;text-transform:uppercase}
+.wrap{display:grid;grid-template-columns:1fr 360px;gap:18px;padding:0 22px 30px}@media(max-width:900px){.wrap{grid-template-columns:1fr}}
+.card{background:rgba(20,5,35,.7);border:2px solid var(--gold);border-radius:14px;padding:14px;box-shadow:0 6px 20px #0008}
+.card h2{margin:0 0 10px;font-size:16px;color:var(--gold2);text-transform:uppercase;letter-spacing:2px;border-bottom:3px dashed var(--gold);padding-bottom:6px}
+button{background:linear-gradient(var(--gold2),var(--gold));color:#2a0d45;border:0;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer}
+button:hover{filter:brightness(1.1)}button.rec{background:linear-gradient(#ff6a5c,var(--red));color:#fff}button.rec.on{animation:p 1s infinite}
+button:disabled{opacity:.4;cursor:default}@keyframes p{50%{box-shadow:0 0 0 6px #c8312b66}}
+.transport{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.track{border-left:8px solid var(--gold);background:rgba(63,23,102,.55);border-radius:10px;padding:10px;margin-top:12px}
+.track:nth-child(3n+2){border-left-color:var(--green)}.track:nth-child(3n){border-left-color:var(--red)}
+.trow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.trow input[type=text]{background:#0006;color:var(--ink);border:1px solid var(--gold);border-radius:6px;padding:4px 8px;width:150px}
+canvas.wave{width:100%;height:60px;background:#0005;border-radius:6px;margin:8px 0;display:block}
+.fx{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px 12px;font-size:12px}
+.fx label{display:flex;flex-direction:column}.fx input{accent-color:var(--gold)}
+textarea{width:100%;height:480px;background:#0007;color:var(--ink);border:1px solid var(--gold);border-radius:8px;padding:10px;font:15px/1.5 Georgia,serif;resize:vertical}
+#tuner{text-align:center}#note{font-size:52px;font-weight:800;color:var(--gold2);font-family:Georgia}#cents{height:16px;background:#0006;border-radius:8px;position:relative;margin:6px 0}
+#needle{position:absolute;top:-3px;width:4px;height:22px;background:var(--gold2);left:50%;transition:left .08s}
+.muted{opacity:.7;font-size:12px}.tag{background:var(--red);color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;vertical-align:middle}
+</style></head><body>
+<div class="kente"></div>
+<header><h1>Daddy Music Studio<small>Afro-Gospel Recording Room</small></h1>
+<div class="transport"><button id="addT">+ Track</button><button id="play">▶ Play All</button><button id="stop">■ Stop</button><button id="mix">⬇ Export Mix (WAV)</button>
+<label class="muted"><input type="checkbox" id="monitor"> hear FX while recording (use headphones)</label></div></header>
+<div class="wrap"><div>
+<div class="card"><h2>Tracks</h2><div class="muted">Hit ● Rec on a track and sing. Other tracks play along while you record. FX are live and also applied on export.</div><div id="tracks"></div></div>
+</div><div>
+<div class="card" id="tuner"><h2>Tuner <span class="tag">BASIC</span></h2><div id="note">–</div><div id="freq" class="muted">open mic to start</div><div id="cents"><div id="needle"></div></div>
+<button id="tunerBtn">🎤 Start Tuner</button><div class="muted" style="margin-top:6px">Basic pitch display only (autocorrelation). It shows how close you are to the nearest note; it does not auto-correct the recording.</div></div>
+<div class="card" style="margin-top:18px"><h2>Lyrics Pad</h2><textarea id="lyrics"></textarea><div class="trow" style="margin-top:6px"><button id="resetLy">Restore original</button><span id="saved" class="muted">auto-saved</span></div></div>
+</div></div><div class="kente"></div>
+<script>
+const ORIG="[Intro]\nOoh, look up, look up\n\n[Verse 1]\nWoke up to the morning sun, painting gold across the sky\nEvery star that's hiding now still knows the reason why\nMountains bow and oceans sing, rivers keep the time\nWho could hold a universe and still hold this heart of mine?\n\n[Pre-Chorus]\nAnd I can't keep it quiet, no\nIt's rising like a fire, oh\n\n[Chorus]\nOh, the awesome universe, singing out Your name\nEvery galaxy is dancing, nothing stays the same\nFrom the dust up to the heavens, all creation lifts a voice\nIn the awesome universe, I can't help but rejoice\n\n[Verse 2]\nTen thousand lights in motion, never once out of place\nIf You number every star, You know my every face\nWhen the night feels long and heavy, I just lift my eyes\nThere's a love that's bigger than the darkness in the skies\n\n[Bridge]\nHigher, higher, take me higher\nWider than the sea, deeper than the fire\nEverything that breathes, come on and praise\nLift it up! (Lift it up!)\n\n[Final Chorus]\nOh, the awesome universe, singing out Your name\nEvery galaxy is dancing, nothing stays the same\nFrom the dust up to the heavens, all creation lifts a voice\nIn the awesome universe, I can't help but rejoice\n\n[Outro]\nAwesome... universe... ooh, look up\n";
+const ly=document.getElementById('lyrics');ly.value=localStorage.getItem('dms_lyrics')??ORIG;
+ly.oninput=()=>{localStorage.setItem('dms_lyrics',ly.value);saved.textContent='saved '+new Date().toLocaleTimeString()};
+resetLy.onclick=()=>{if(confirm('Replace pad with original lyrics?')){ly.value=ORIG;ly.oninput()}};
+let ctx;const AC=()=>ctx||(ctx=new (window.AudioContext||window.webkitAudioContext)());
+function impulse(c,sec){const n=c.sampleRate*sec,b=c.createBuffer(2,n,c.sampleRate);for(let ch=0;ch<2;ch++){const d=b.getChannelData(ch);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,3)}return b}
+const DEF={vol:0.9,low:0,high:0,comp:-18,rev:0.25,dly:0,time:0.33,fb:0.3};
+function chain(c,dest,p){const low=c.createBiquadFilter();low.type='lowshelf';low.frequency.value=200;const high=c.createBiquadFilter();high.type='highshelf';high.frequency.value=5000;
+const comp=c.createDynamicsCompressor();comp.ratio.value=4;comp.attack.value=.005;comp.release.value=.2;const out=c.createGain(),dry=c.createGain(),rv=c.createConvolver(),rg=c.createGain(),dl=c.createDelay(2),fb=c.createGain(),dg=c.createGain();
+rv.buffer=impulse(c,2.5);low.connect(high).connect(comp);comp.connect(dry).connect(out);comp.connect(rv).connect(rg).connect(out);comp.connect(dl);dl.connect(fb).connect(dl);dl.connect(dg).connect(out);out.connect(dest);
+const n={input:low,set(p){low.gain.value=p.low;high.gain.value=p.high;comp.threshold.value=p.comp;rg.gain.value=p.rev;dg.gain.value=p.dly;dl.delayTime.value=p.time;fb.gain.value=Math.min(p.fb,.85);out.gain.value=p.mute?0:p.vol}};n.set(p);return n}
+const tracks=[];let micStream;
+async function mic(){if(!micStream)micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});return micStream}
+function addTrack(){const t={id:Date.now()+Math.random(),name:'Vocal '+(tracks.length+1),p:{...DEF},buf:null};tracks.push(t);render(t);return t}
+function render(t){const el=document.createElement('div');el.className='track';el.innerHTML=`<div class="trow"><input type="text" value="${t.name}"><button class="rec">● Rec</button><button class="pl">▶</button><label><input type="checkbox" class="mute"> mute</label><button class="del">✕</button><span class="muted st"></span></div><canvas class="wave" width="800" height="60"></canvas>
+<div class="fx">${[['vol','Volume',0,1.5,.01],['low','EQ Low (dB)',-15,15,.5],['high','EQ High (dB)',-15,15,.5],['comp','Compressor thresh (dB)',-50,0,1],['rev','Reverb',0,1,.01],['dly','Echo level',0,1,.01],['time','Echo time (s)',.05,1,.01],['fb','Echo feedback',0,.85,.01]].map(([k,l,a,b,s])=>`<label>${l}<input type="range" data-k="${k}" min="${a}" max="${b}" step="${s}" value="${t.p[k]}"></label>`).join('')}</div>`;
+document.getElementById('tracks').appendChild(el);t.el=el;
+el.querySelector('input[type=text]').oninput=e=>t.name=e.target.value;
+el.querySelectorAll('input[type=range]').forEach(r=>r.oninput=()=>{t.p[r.dataset.k]=+r.value;t.node&&t.node.set(t.p)});
+el.querySelector('.mute').onchange=e=>{t.p.mute=e.target.checked;t.node&&t.node.set(t.p)};
+el.querySelector('.del').onclick=()=>{if(!confirm('Delete track?'))return;stopAll();tracks.splice(tracks.indexOf(t),1);el.remove()};
+el.querySelector('.pl').onclick=()=>{stopAll();playTracks([t])};
+const rb=el.querySelector('.rec');rb.onclick=()=>t.rec?stopRec(t):startRec(t)}
+async function startRec(t){const c=AC();await c.resume();let s;try{s=await mic()}catch(e){alert('Microphone blocked: '+e.message);return}
+stopAll();const others=tracks.filter(x=>x!==t&&x.buf);playTracks(others);
+const src=c.createMediaStreamSource(s);const proc=c.createScriptProcessor(4096,1,1);const chunks=[];proc.onaudioprocess=e=>chunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+const sink=c.createGain();sink.gain.value=0;src.connect(proc);proc.connect(sink).connect(c.destination);
+let mon=null;if(monitor.checked){mon=chain(c,c.destination,t.p);src.connect(mon.input);t.node=mon}
+t.rec={src,proc,chunks,mon};const b=t.el.querySelector('.rec');b.classList.add('on');b.textContent='■ Stop Rec';t.el.querySelector('.st').textContent='recording…'}
+function stopRec(t){const r=t.rec;r.src.disconnect();r.proc.disconnect();if(r.mon)r.src.disconnect();t.rec=null;stopAll();
+const len=r.chunks.reduce((a,b)=>a+b.length,0);if(!len)return;const c=AC();const buf=c.createBuffer(1,len,c.sampleRate);let o=0;const d=buf.getChannelData(0);r.chunks.forEach(ch=>{d.set(ch,o);o+=ch.length});t.buf=buf;
+const b=t.el.querySelector('.rec');b.classList.remove('on');b.textContent='● Re-Rec';t.el.querySelector('.st').textContent=buf.duration.toFixed(1)+'s';draw(t)}
+function draw(t){const cv=t.el.querySelector('canvas'),g=cv.getContext('2d'),d=t.buf.getChannelData(0),W=cv.width,H=cv.height,step=Math.ceil(d.length/W);g.clearRect(0,0,W,H);g.fillStyle='#f2b632';
+for(let x=0;x<W;x++){let m=0;for(let i=x*step;i<(x+1)*step&&i<d.length;i++)m=Math.max(m,Math.abs(d[i]));g.fillRect(x,H/2-m*H/2,1,m*H||1)}}
+let playing=[];
+function playTracks(list){const c=AC();c.resume();const t0=c.currentTime+.05;list.forEach(t=>{if(!t.buf)return;const s=c.createBufferSource();s.buffer=t.buf;const n=chain(c,c.destination,t.p);t.node=n;s.connect(n.input);s.start(t0);playing.push(s)})}
+function stopAll(){playing.forEach(s=>{try{s.stop()}catch(e){}});playing=[]}
+addT.onclick=addTrack;play.onclick=()=>{stopAll();playTracks(tracks)};stop.onclick=()=>{stopAll();tracks.forEach(t=>t.rec&&stopRec(t))};
+mix.onclick=async()=>{const ts=tracks.filter(t=>t.buf&&!t.p.mute);if(!ts.length)return alert('Record something first');const sr=ts[0].buf.sampleRate;
+const len=Math.ceil((Math.max(...ts.map(t=>t.buf.duration))+3)*sr);const oc=new OfflineAudioContext(2,len,sr);ts.forEach(t=>{const s=oc.createBufferSource();s.buffer=t.buf;s.connect(chain(oc,oc.destination,t.p).input);s.start(0)});
+const out=await oc.startRendering();const blob=wav(out);const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='DaddyMusicStudio_mix.wav';a.click()};
+function wav(b){const ch=b.numberOfChannels,n=b.length,buf=new ArrayBuffer(44+n*ch*2),v=new DataView(buf);const w=(o,s)=>[...s].forEach((c,i)=>v.setUint8(o+i,c.charCodeAt(0)));
+w(0,'RIFF');v.setUint32(4,36+n*ch*2,true);w(8,'WAVEfmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,ch,true);v.setUint32(24,b.sampleRate,true);v.setUint32(28,b.sampleRate*ch*2,true);v.setUint16(32,ch*2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,n*ch*2,true);
+let o=44;const ds=[...Array(ch)].map((_,i)=>b.getChannelData(i));for(let i=0;i<n;i++)for(let c=0;c<ch;c++){const s=Math.max(-1,Math.min(1,ds[c][i]));v.setInt16(o,s*32767,true);o+=2}return new Blob([buf],{type:'audio/wav'})}
+// basic tuner
+const NOTES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];let tun=null;
+tunerBtn.onclick=async()=>{if(tun){tun=null;tunerBtn.textContent='🎤 Start Tuner';return}const c=AC();await c.resume();let s;try{s=await mic()}catch(e){return alert('Mic blocked')}
+const an=c.createAnalyser();an.fftSize=2048;c.createMediaStreamSource(s).connect(an);tun=an;tunerBtn.textContent='Stop Tuner';const d=new Float32Array(2048);
+(function loop(){if(tun!==an)return;an.getFloatTimeDomainData(d);const f=pitch(d,c.sampleRate);if(f>60&&f<1200){const m=12*Math.log2(f/440)+69,r=Math.round(m),cents=Math.round((m-r)*100);
+note.textContent=NOTES[r%12]+(Math.floor(r/12)-1);freq.textContent=f.toFixed(1)+' Hz · '+(cents>0?'+':'')+cents+' cents';needle.style.left=(50+cents)+'%';needle.style.background=Math.abs(cents)<10?'#3ddc84':'#ffd76a'}requestAnimationFrame(loop)})()};
+function pitch(b,sr){let rms=0;for(const x of b)rms+=x*x;if(Math.sqrt(rms/b.length)<.01)return -1;const n=b.length,c=new Float32Array(n);for(let l=0;l<n/2;l++){let s=0;for(let i=0;i<n/2;i++)s+=b[i]*b[i+l];c[l]=s}
+let d=0;while(d<n/2&&c[d]>c[d+1])d++;let mx=-1,p=-1;for(let i=d;i<n/2;i++)if(c[i]>mx){mx=c[i];p=i}if(p<1)return -1;const a=c[p-1],bb=c[p],cc=c[p+1]||0,sh=(a-cc)/(2*(a-2*bb+cc));return sr/(p+(isFinite(sh)?sh:0))}
+addTrack();
+</script></body></html>
